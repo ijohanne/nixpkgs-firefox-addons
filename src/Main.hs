@@ -6,11 +6,11 @@ module Main (main) where
 
 import Lens.Micro.Platform
 import Data.Aeson
-import Data.Char (isUpper)
-import Data.Text (span, stripPrefix, toLower)
+import qualified Data.Char as DC
+import qualified Data.Text as DT
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 import qualified Relude.Unsafe as Unsafe
-import System.Environment (getArgs, getProgName)
+import qualified System.Environment as SE
 import System.Nixpkgs.FirefoxAddons
 
 data Addon = Addon { slug :: Text
@@ -23,18 +23,18 @@ instance FromJSON Addon
 
 instance FromJSON AddonLicense where
   parseJSON =
-    let toLowerInit (h, t) = toLower h <> t
+    let toLowerInit (h, t) = DT.toLower h <> t
         opts = defaultOptions
           { constructorTagModifier = toString
-                                     . toLower
+                                     . DT.toLower
                                      . Unsafe.fromJust
-                                     . stripPrefix "AddonLicense"
+                                     . DT.stripPrefix "AddonLicense"
                                      . toText
           , fieldLabelModifier     = toString
                                      . toLowerInit
-                                     . span isUpper
+                                     . DT.span DC.isUpper
                                      . Unsafe.fromJust
-                                     . stripPrefix "addonLicense"
+                                     . DT.stripPrefix "addonLicense"
                                      . toText
           }
     in  genericParseJSON opts
@@ -45,11 +45,11 @@ data CmdArgs = CmdArgs { inputFile :: FilePath
                deriving (Eq, Show)
 
 parseArgs :: IO CmdArgs
-parseArgs = getArgs >>= parse
+parseArgs = SE.getArgs >>= parse
   where
     usage =
       do
-        progName <- getProgName
+        progName <- SE.getProgName
         putTextLn $ toText progName <> " IN_FILE OUT_FILE"
         putTextLn ""
         putTextLn "where IN_FILE is a JSON file containing a list of addons"
